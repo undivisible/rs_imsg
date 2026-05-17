@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 use serde_json::{json, Value};
 use uuid::Uuid;
 
-use crate::error::{Result, RsImsgError};
+use crate::error::{Result, RsImessageError};
 use crate::private_api::paths::{rpc_inbox, rpc_outbox};
 use crate::private_api::protocol::{BridgeAction, DEFAULT_TIMEOUT_MS, PROTOCOL_VERSION};
 
@@ -92,7 +92,7 @@ pub fn invoke_blocking(
                 if response.success {
                     return Ok(response);
                 }
-                return Err(RsImsgError::PrivateApi(
+                return Err(RsImessageError::PrivateApi(
                     response.error.unwrap_or_else(|| "bridge error".into()),
                 ));
             }
@@ -101,7 +101,7 @@ pub fn invoke_blocking(
     }
 
     let _ = fs::remove_file(&request_path);
-    Err(RsImsgError::PrivateApi(format!(
+    Err(RsImessageError::PrivateApi(format!(
         "timeout waiting for bridge response to '{}'",
         action.as_str()
     )))
@@ -117,7 +117,7 @@ pub fn invoke_default(action: BridgeAction, params: Value) -> Result<BridgeRespo
 
 fn ensure_dir(path: &Path) -> Result<()> {
     fs::create_dir_all(path).map_err(|e| {
-        RsImsgError::PrivateApi(format!("mkdir {}: {e}", path.display()))
+        RsImessageError::PrivateApi(format!("mkdir {}: {e}", path.display()))
     })?;
     Ok(())
 }

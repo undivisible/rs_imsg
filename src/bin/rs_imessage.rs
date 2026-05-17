@@ -1,6 +1,6 @@
 #[cfg(all(feature = "cli", not(target_os = "macos")))]
 fn main() {
-    eprintln!("rs_imsg requires macOS (Messages.app + ~/Library/Messages/chat.db)");
+    eprintln!("rs_imessage requires macOS (Messages.app + ~/Library/Messages/chat.db)");
     std::process::exit(1);
 }
 

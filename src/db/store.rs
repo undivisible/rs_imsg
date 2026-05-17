@@ -2,7 +2,7 @@ use std::path::Path;
 
 use rusqlite::{Connection, OpenFlags, OptionalExtension};
 
-use crate::error::{Result, RsImsgError};
+use crate::error::{Result, RsImessageError};
 use crate::time::apple_timestamp_to_utc;
 use crate::types::{AttachmentMeta, ChatRecord, MessageRecord};
 
@@ -13,7 +13,7 @@ pub struct MessageStore {
 impl MessageStore {
     pub fn open(path: &Path) -> Result<Self> {
         if !path.exists() {
-            return Err(RsImsgError::Other(format!(
+            return Err(RsImessageError::Other(format!(
                 "chat.db not found at {}",
                 path.display()
             )));

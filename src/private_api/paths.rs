@@ -34,8 +34,8 @@ pub fn dylib_search_paths() -> Vec<PathBuf> {
             .join("lib")
             .join(name),
     );
-    if let Ok(custom) = std::env::var("RS_IMSG_BRIDGE_DYLIB") {
-        paths.push(PathBuf::from(custom));
+    if let Some(custom) = crate::env::var("RS_IMESSAGE_BRIDGE_DYLIB", "RS_IMSG_BRIDGE_DYLIB") {
+        paths.push(PathBuf::from(&custom));
     }
     if let Ok(prefix) = std::env::var("HOMEBREW_PREFIX") {
         paths.push(PathBuf::from(prefix).join("lib").join(name));

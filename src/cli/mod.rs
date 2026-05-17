@@ -3,15 +3,15 @@ use std::io::{self, Write};
 use clap::{Parser, Subcommand};
 use serde::Serialize;
 
-use rs_imsg::db::MessageStore;
-use rs_imsg::error::Result;
-use rs_imsg::paths::chat_db_from_env;
-use rs_imsg::send;
-use rs_imsg::types::SendRequest;
-use rs_imsg::watch::{watch_blocking, WatchOptions};
+use rs_imessage::db::MessageStore;
+use rs_imessage::error::Result;
+use rs_imessage::paths::chat_db_from_env;
+use rs_imessage::send;
+use rs_imessage::types::SendRequest;
+use rs_imessage::watch::{watch_blocking, WatchOptions};
 
 #[derive(Parser, Debug)]
-#[command(name = "rs_imsg", about = "Agent-first iMessage toolkit for macOS")]
+#[command(name = "rs_imessage", about = "Unstable — iMessage toolkit for macOS")]
 pub struct Cli {
     #[arg(long, global = true, help = "Path to chat.db (default: ~/Library/Messages/chat.db)")]
     pub db: Option<std::path::PathBuf>,
@@ -74,7 +74,7 @@ pub enum Commands {
     Serve {
         #[arg(long, default_value = "127.0.0.1:8721")]
         bind: String,
-        #[arg(long, env = "RS_IMSG_TOKEN")]
+        #[arg(long, env = "RS_IMESSAGE_TOKEN")]
         token: String,
         #[arg(long)]
         chat_id: Option<i64>,
@@ -89,7 +89,7 @@ pub enum Commands {
 
 pub fn run(cli: Cli) -> Result<()> {
     match cli.command {
-        Commands::Rpc => rs_imsg::rpc::run_stdio(),
+        Commands::Rpc => rs_imessage::rpc::run_stdio(),
         Commands::Serve {
             bind,
             token,
@@ -98,18 +98,18 @@ pub fn run(cli: Cli) -> Result<()> {
             poll_ms,
             debounce_ms,
         } => {
-            let db_path = cli.db.clone().unwrap_or_else(rs_imsg::paths::chat_db_from_env);
+            let db_path = cli.db.clone().unwrap_or_else(rs_imessage::paths::chat_db_from_env);
             let addr = bind
                 .parse()
-                .map_err(|e| rs_imsg::error::RsImsgError::Other(format!("invalid bind address: {e}")))?;
+                .map_err(|e| rs_imessage::error::RsImessageError::Other(format!("invalid bind address: {e}")))?;
             let rt = tokio::runtime::Builder::new_multi_thread()
                 .enable_all()
                 .build()
-                .map_err(|e| rs_imsg::error::RsImsgError::Other(e.to_string()))?;
-            rt.block_on(rs_imsg::http::run(rs_imsg::http::ServeConfig {
+                .map_err(|e| rs_imessage::error::RsImessageError::Other(e.to_string()))?;
+            rt.block_on(rs_imessage::http::run(rs_imessage::http::ServeConfig {
                 bind: addr,
                 token,
-                client: rs_imsg::ClientConfig {
+                client: rs_imessage::ClientConfig {
                     chat_db_path: db_path,
                 },
                 watch: WatchOptions {
@@ -136,7 +136,7 @@ fn run_command(db: Option<&std::path::Path>, json: bool, command: Commands) -> R
             let store = MessageStore::open(&path)?;
             let chat = store
                 .chat_by_id(chat_id)?
-                .ok_or_else(|| rs_imsg::error::RsImsgError::Other(format!("chat {chat_id} not found")))?;
+                .ok_or_else(|| rs_imessage::error::RsImessageError::Other(format!("chat {chat_id} not found")))?;
             emit(json, &chat)?;
         }
         Commands::History {

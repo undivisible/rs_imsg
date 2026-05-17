@@ -1,8 +1,8 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum RsImsgError {
-    #[error("rs_imsg requires macOS (Messages.app + chat.db)")]
+pub enum RsImessageError {
+    #[error("rs_imessage requires macOS (Messages.app + chat.db)")]
     UnsupportedPlatform,
 
     #[cfg(target_os = "macos")]
@@ -31,4 +31,4 @@ pub enum RsImsgError {
     Other(String),
 }
 
-pub type Result<T> = std::result::Result<T, RsImsgError>;
+pub type Result<T> = std::result::Result<T, RsImessageError>;

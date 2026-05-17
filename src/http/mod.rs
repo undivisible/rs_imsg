@@ -7,7 +7,7 @@ mod server;
 pub use server::{run, ServeConfig};
 
 #[cfg(all(feature = "serve", not(target_os = "macos")))]
-use crate::error::{Result, RsImsgError};
+use crate::error::{Result, RsImessageError};
 
 #[cfg(all(feature = "serve", not(target_os = "macos")))]
 use crate::client::ClientConfig;
@@ -27,5 +27,5 @@ pub struct ServeConfig {
 
 #[cfg(all(feature = "serve", not(target_os = "macos")))]
 pub async fn run(_config: ServeConfig) -> Result<()> {
-    Err(RsImsgError::UnsupportedPlatform)
+    Err(RsImessageError::UnsupportedPlatform)
 }

@@ -1,18 +1,21 @@
 [package]
-name = "rs_imsg"
+name = "rs_imessage"
 version = "0.1.0"
 edition = "2021"
-description = "Library-first iMessage toolkit for macOS — chat.db reads, live watch, AppleScript send, JSON-RPC CLI"
+description = "Unstable, still in development — iMessage toolkit for macOS (chat.db, watch, send, optional bridge)"
 license = "MPL-2.0"
-repository = "https://github.com/undivisible/rs_imsg"
+repository = "https://github.com/undivisible/rs_imessage"
+readme = "README.md"
+keywords = ["imessage", "macos", "messages"]
+categories = ["api-bindings", "os::macos-apis"]
 
 [lib]
-name = "rs_imsg"
+name = "rs_imessage"
 path = "src/lib.rs"
 
 [[bin]]
-name = "rs_imsg"
-path = "src/bin/rs_imsg.rs"
+name = "rs_imessage"
+path = "src/bin/rs_imessage.rs"
 required-features = ["cli"]
 
 [features]

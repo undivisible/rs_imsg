@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::db::MessageStore;
-use crate::error::{Result, RsImsgError};
+use crate::error::{Result, RsImessageError};
 use crate::paths::chat_db_from_env;
 use crate::send;
 use crate::types::SendRequest;
@@ -99,7 +99,7 @@ fn dispatch(method: &str, params: Value) -> Result<Value> {
             let chat_id = params
                 .get("chat_id")
                 .and_then(|v| v.as_i64())
-                .ok_or_else(|| RsImsgError::Rpc("messages.history requires chat_id".into()))?;
+                .ok_or_else(|| RsImessageError::Rpc("messages.history requires chat_id".into()))?;
             let limit = params.get("limit").and_then(|v| v.as_u64()).unwrap_or(50) as usize;
             let since = params.get("since_rowid").and_then(|v| v.as_i64());
             Ok(serde_json::to_value(store.history(chat_id, limit, since)?)?)
@@ -108,7 +108,7 @@ fn dispatch(method: &str, params: Value) -> Result<Value> {
             let query = params
                 .get("query")
                 .and_then(|v| v.as_str())
-                .ok_or_else(|| RsImsgError::Rpc("messages.search requires query".into()))?;
+                .ok_or_else(|| RsImessageError::Rpc("messages.search requires query".into()))?;
             let limit = params.get("limit").and_then(|v| v.as_u64()).unwrap_or(50) as usize;
             Ok(serde_json::to_value(store.search(query, limit)?)?)
         }
@@ -139,6 +139,6 @@ fn dispatch(method: &str, params: Value) -> Result<Value> {
             )?;
             Ok(Value::Null)
         }
-        other => Err(RsImsgError::Rpc(format!("unknown method: {other}"))),
+        other => Err(RsImessageError::Rpc(format!("unknown method: {other}"))),
     }
 }

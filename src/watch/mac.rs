@@ -5,7 +5,7 @@ use std::time::Duration;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 
 use crate::db::MessageStore;
-use crate::error::{Result, RsImsgError};
+use crate::error::{Result, RsImessageError};
 use crate::paths::wal_paths;
 use crate::types::{WatchEvent, WatchEventKind};
 
@@ -34,7 +34,7 @@ pub fn watch_blocking(
         },
         notify::Config::default(),
     )
-    .map_err(|e| RsImsgError::Watch(e.to_string()))?;
+    .map_err(|e| RsImessageError::Watch(e.to_string()))?;
 
     for path in wal_paths(db_path) {
         if path.exists() {

@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use crate::error::{Result, RsImsgError};
+use crate::error::{Result, RsImessageError};
 use crate::types::{SendRequest, SendResult, SendService};
 
 pub fn send(request: &SendRequest) -> Result<SendResult> {
@@ -17,7 +17,7 @@ pub fn send_with_db(request: &SendRequest, db_path: &Path) -> Result<SendResult>
         .text
         .as_deref()
         .filter(|t| !t.is_empty())
-        .ok_or_else(|| RsImsgError::Send("send requires --text and/or --file".into()))?;
+        .ok_or_else(|| RsImessageError::Send("send requires --text and/or --file".into()))?;
     send_text(&target, text, request.service)
 }
 
@@ -35,10 +35,10 @@ fn resolve_target(request: &SendRequest, db_path: &Path) -> Result<String> {
         let store = crate::db::MessageStore::open(db_path)?;
         let chat = store
             .chat_by_id(chat_id)?
-            .ok_or_else(|| RsImsgError::Send(format!("chat_id {chat_id} not found")))?;
+            .ok_or_else(|| RsImessageError::Send(format!("chat_id {chat_id} not found")))?;
         return Ok(chat.guid);
     }
-    Err(RsImsgError::Send(
+    Err(RsImessageError::Send(
         "send requires --to, --chat-id, --chat-guid, or --chat-identifier".into(),
     ))
 }
@@ -59,7 +59,7 @@ fn send_text(target: &str, text: &str, service: SendService) -> Result<SendResul
 fn send_file(target: &str, path: &str, caption: Option<&str>, service: SendService) -> Result<SendResult> {
     let file = Path::new(path);
     if !file.is_file() {
-        return Err(RsImsgError::Send(format!("file not found: {}", file.display())));
+        return Err(RsImessageError::Send(format!("file not found: {}", file.display())));
     }
     let staged = stage_attachment(file)?;
     let script = build_send_script(
@@ -72,11 +72,11 @@ fn send_file(target: &str, path: &str, caption: Option<&str>, service: SendServi
 }
 
 fn stage_attachment(source: &Path) -> Result<std::path::PathBuf> {
-    let dir = crate::paths::default_messages_dir().join("Attachments/rs_imsg");
+    let dir = crate::paths::default_messages_dir().join("Attachments/rs_imessage");
     std::fs::create_dir_all(&dir)?;
     let name = source
         .file_name()
-        .ok_or_else(|| RsImsgError::Send("attachment has no filename".into()))?;
+        .ok_or_else(|| RsImessageError::Send("attachment has no filename".into()))?;
     let dest = dir.join(name);
     std::fs::copy(source, &dest)?;
     Ok(dest)
@@ -159,7 +159,7 @@ fn run_osascript(script: &str) -> Result<SendResult> {
         .arg("-e")
         .arg(script)
         .output()
-        .map_err(|e| RsImsgError::Send(format!("osascript failed to start: {e}")))?;
+        .map_err(|e| RsImessageError::Send(format!("osascript failed to start: {e}")))?;
 
     if output.status.success() {
         return Ok(SendResult {
@@ -169,7 +169,7 @@ fn run_osascript(script: &str) -> Result<SendResult> {
     }
     let stderr = String::from_utf8_lossy(&output.stderr);
     let stdout = String::from_utf8_lossy(&output.stdout);
-    Err(RsImsgError::Send(format!(
+    Err(RsImessageError::Send(format!(
         "osascript exit {}: {stderr}{stdout}",
         output.status
     )))

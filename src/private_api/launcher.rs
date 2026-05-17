@@ -4,7 +4,7 @@ use std::process::Command;
 use std::thread;
 use std::time::{Duration, Instant};
 
-use crate::error::{Result, RsImsgError};
+use crate::error::{Result, RsImessageError};
 use crate::private_api::paths::{bridge_ready_lock, resolve_dylib, rpc_inbox, rpc_outbox};
 use crate::private_api::sip::require_sip_disabled;
 
@@ -17,8 +17,8 @@ pub struct Launcher {
 impl Launcher {
     pub fn discover() -> Result<Self> {
         let dylib_path = resolve_dylib().ok_or_else(|| {
-            RsImsgError::PrivateApi(format!(
-                "{} not found; build from openclaw/imsg (make build-dylib) or set RS_IMSG_BRIDGE_DYLIB",
+            RsImessageError::PrivateApi(format!(
+                "{} not found; build from openclaw/imsg (make build-dylib) or set RS_IMESSAGE_BRIDGE_DYLIB",
                 crate::private_api::protocol::DEFAULT_DYLIB_NAME
             ))
         })?;
@@ -48,7 +48,7 @@ impl Launcher {
 }
 
 fn ensure_queue_dir(path: &Path) -> Result<()> {
-    fs::create_dir_all(path).map_err(|e| RsImsgError::PrivateApi(format!("mkdir {}: {e}", path.display())))?;
+    fs::create_dir_all(path).map_err(|e| RsImessageError::PrivateApi(format!("mkdir {}: {e}", path.display())))?;
     Ok(())
 }
 
@@ -72,12 +72,12 @@ fn kill_messages() {
 
 fn launch_with_injection(dylib: &Path) -> Result<()> {
     let dylib = fs::canonicalize(dylib)
-        .map_err(|e| RsImsgError::PrivateApi(format!("dylib path: {e}")))?;
+        .map_err(|e| RsImessageError::PrivateApi(format!("dylib path: {e}")))?;
     let mut child = Command::new(MESSAGES_BIN);
     child.env("DYLD_INSERT_LIBRARIES", dylib);
     child
         .spawn()
-        .map_err(|e| RsImsgError::PrivateApi(format!("launch Messages: {e}")))?;
+        .map_err(|e| RsImessageError::PrivateApi(format!("launch Messages: {e}")))?;
     Ok(())
 }
 
@@ -90,7 +90,7 @@ fn wait_for_ready(timeout: Duration) -> Result<()> {
         }
         thread::sleep(Duration::from_millis(250));
     }
-    Err(RsImsgError::PrivateApi(
+    Err(RsImessageError::PrivateApi(
         "timeout waiting for bridge ready lock".into(),
     ))
 }

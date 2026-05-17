@@ -1,38 +1,27 @@
-# rs_imsg
+# rs_imessage
 
-Library-first iMessage toolkit for macOS — read `chat.db`, stream new messages,
-and send via Messages.app (AppleScript). Built for agent runtimes; ships an
-optional CLI behind the `cli` feature.
+> **Unstable — still in development.** APIs and behavior may change without notice.
 
-**License:** [Mozilla Public License 2.0](LICENSE)
-
-This crate is **original work**. It is not a fork of the projects listed under
-[Acknowledgements](#acknowledgements); those repositories informed design and
-API shape only.
+Library-first iMessage toolkit for macOS: read `chat.db`, stream new messages,
+send via Messages.app (AppleScript), optional HTTP bridge and private-api dylib.
 
 ## Mac hosts the bridge
 
-Apple only delivers iMessage on a **Mac signed into Messages**. The pattern we target:
-
 ```text
 ┌──────────────────────────── Mac (always on) ────────────────────────────┐
-│  Messages.app  →  chat.db  →  rs_imsg bridge (HTTP on :8721)              │
+│  Messages.app  →  chat.db  →  rs_imessage bridge (HTTP on :8721)        │
 └────────────────────────────────────┬────────────────────────────────────┘
                                      │  LAN / Tailscale / SSH tunnel
                                      ▼
 ┌──────────────────────────── Your agent host ──────────────────────────────┐
-│  Any client  →  RS_IMSG_URL + Bearer token  →  send + SSE events          │
+│  Any client  →  RS_IMESSAGE_URL + Bearer token  →  send + SSE events      │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
-On the Mac:
-
 ```bash
-export RS_IMSG_TOKEN="$(openssl rand -hex 24)"
+export RS_IMESSAGE_TOKEN="$(openssl rand -hex 24)"
 cargo run --features cli -- serve --bind 0.0.0.0:8721
 ```
-
-Remote callers use `Authorization: Bearer $RS_IMSG_TOKEN` (or `?token=`).
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
@@ -43,11 +32,7 @@ Remote callers use `Authorization: Bearer $RS_IMSG_TOKEN` (or `?token=`).
 | `/api/v1/messages/send` | POST | Send text / file |
 | `/api/v1/events` | GET | SSE stream of new messages |
 
-**Same machine:** link `rs_imsg` as a library (`Client`) — no HTTP hop.
-
-**Remote:** point your agent at `RS_IMSG_URL` (or a hosted iMessage API); the Mac bridge is for self-host.
-
-Library API: enable feature `serve` and call `rs_imsg::run_bridge(ServeConfig { ... }).await`.
+**Same machine:** use `Client` in-process. **Remote:** set `RS_IMESSAGE_URL` (legacy `RS_IMSG_URL` still read where noted in code).
 
 ## Requirements
 
@@ -59,84 +44,38 @@ Library API: enable feature `serve` and call `rs_imsg::run_bridge(ServeConfig { 
 ## Library
 
 ```toml
-rs_imsg = { git = "https://github.com/undivisible/rs_imsg", default-features = false }
+rs_imessage = "0.1"
 ```
 
 ```rust
-use rs_imsg::{Client, ClientConfig};
-use rs_imsg::watch::WatchOptions;
+use rs_imessage::{Client, ClientConfig};
+use rs_imessage::watch::WatchOptions;
 
 let client = Client::open(ClientConfig::default())?;
 let chats = client.list_chats(20)?;
 let mut stream = client.watch(WatchOptions::default())?;
 ```
 
-On non-macOS targets the crate compiles; macOS-only operations return
-`RsImsgError::UnsupportedPlatform`.
+### Private API (`private-api` feature)
 
-### Modules
-
-| Module | Role |
-|--------|------|
-| `client` | High-level `Client` / `ClientConfig` |
-| `db` | Read-only `chat.db` access |
-| `watch` | Filesystem notify + poll fallback |
-| `send` | AppleScript send path |
-| `rpc` | JSON-RPC 2.0 (`run_stdio`) |
-| `types` | Stable JSON records |
-| `private_api` (`private-api` feature) | IMCore dylib bridge (openclaw/imsg protocol) |
-
-### Tier 1 — Private API (`private-api` feature)
-
-Uses the MIT [openclaw/imsg](https://github.com/openclaw/imsg) `imsg-bridge-helper.dylib`
-(not GPL BlueBubbles server). Requires **SIP disabled** and Messages injection.
+Build the MIT [openclaw/imsg](https://github.com/openclaw/imsg) helper dylib:
 
 ```bash
-./scripts/build-bridge-from-imsg.sh   # builds lib/imsg-bridge-helper.dylib from openclaw/imsg (MIT)
-# optional: INSTALL_LIB=/opt/homebrew/lib ./scripts/build-bridge-from-imsg.sh
+./scripts/build-bridge-from-imsg.sh
 cargo build --features private-api
 ```
 
-```rust
-use rs_imsg::{Client, ClientConfig};
+FaceTime Audio lives in [`rs_facetime`](https://github.com/undivisible/rs_facetime).
 
-let client = Client::open(ClientConfig::default())?;
-let bridge = client.bridge()?;
-bridge.ping()?;
-bridge.send_message("iMessage;-;+15551234567", "hello", None)?;
-```
-
-Set `RS_IMSG_BRIDGE_DYLIB` to override dylib search path.
-
-**FaceTime Audio** is intentionally out of scope here — use the separate
-[`rs_facetime`](https://github.com/undivisible/rs_facetime) crate.
-
-## Optional CLI
+## CLI
 
 ```bash
 cargo build --features cli
-./target/debug/rs_imsg chats --limit 10 --json
+./target/debug/rs_imessage chats --limit 10 --json
 ```
 
-Environment: `RS_IMSG_DB` overrides `~/Library/Messages/chat.db`.
+`RS_IMESSAGE_DB` overrides `~/Library/Messages/chat.db` (`RS_IMSG_DB` accepted as legacy).
 
-## Acknowledgements
+## Related
 
-We are grateful to the authors of these projects for publishing their work and
-shaping the ecosystem. **rs_imsg does not include their source code**; the table
-describes conceptual debt only.
-
-| Project | Authors / org | License (as published) | What we learned |
-|---------|---------------|------------------------|-----------------|
-| [openclaw/imsg](https://github.com/openclaw/imsg) | OpenClaw contributors | MIT | Agent-oriented JSON lines, JSON-RPC over stdio, `watch` with fs events + poll fallback, stderr for human logs |
-| [jesec/imessage-rs](https://github.com/jesec/imessage-rs) | Jesse Chan | MIT | Modular crate layout, BlueBubbles-shaped HTTP ideas, group participants, attachment metadata |
-| [photon-hq/imessage-kit](https://github.com/photon-hq/imessage-kit) | Photon | MIT | Typed chat/message models, send vs observe semantics, staged attachments |
-| [BlueBubblesApp/bluebubbles-server](https://github.com/BlueBubblesApp/bluebubbles-server) | BlueBubbles | GPL-3.0 (server) | REST envelope patterns and route naming for future compatibility |
-| [OpenBubbles/openbubbles-app](https://github.com/OpenBubbles/openbubbles-app) | OpenBubbles | Apache-2.0 | Product-level feature set reference (groups, FaceTime, Find My) |
-
-Apple, iMessage, Messages, and FaceTime are trademarks of Apple Inc. This
-project is not affiliated with Apple.
-
-## Related repos
-
-- **[rs_facetime](https://github.com/undivisible/rs_facetime)** — FaceTime Audio private API (separate dylib / feature matrix).
+- [rs_facetime](https://github.com/undivisible/rs_facetime) — FaceTime Audio bridge (separate crate)

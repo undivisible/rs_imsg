@@ -5,7 +5,7 @@ use std::thread;
 use tokio::sync::mpsc;
 
 use crate::db::MessageStore;
-use crate::error::{Result, RsImsgError};
+use crate::error::{Result, RsImessageError};
 use crate::paths::chat_db_from_env;
 use crate::send;
 use crate::types::{ChatRecord, MessageRecord, SendRequest, SendResult, WatchEvent};
@@ -69,7 +69,7 @@ impl Client {
         &self,
         _options: WatchOptions,
     ) -> Result<mpsc::Receiver<Result<WatchEvent>>> {
-        Err(RsImsgError::UnsupportedPlatform)
+        Err(RsImessageError::UnsupportedPlatform)
     }
 
     #[cfg(target_os = "macos")]
@@ -84,7 +84,7 @@ impl Client {
         thread::spawn(move || {
             let send_res = watch_blocking(&db_path, options, |ev| {
                 if tx.blocking_send(Ok(ev)).is_err() {
-                    return Err(RsImsgError::Watch("watch receiver dropped".into()));
+                    return Err(RsImessageError::Watch("watch receiver dropped".into()));
                 }
                 Ok(())
             });

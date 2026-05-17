@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::error::{Result, RsImsgError};
+use crate::error::{Result, RsImessageError};
 use crate::types::WatchEvent;
 
 #[derive(Debug, Clone)]
@@ -16,5 +16,5 @@ pub fn watch_blocking(
     _options: WatchOptions,
     _on_event: impl FnMut(WatchEvent) -> Result<()>,
 ) -> Result<()> {
-    Err(RsImsgError::UnsupportedPlatform)
+    Err(RsImessageError::UnsupportedPlatform)
 }

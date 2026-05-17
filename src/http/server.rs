@@ -17,7 +17,7 @@ use tokio::sync::broadcast;
 use tokio_stream::{wrappers::BroadcastStream, StreamExt};
 
 use crate::client::{Client, ClientConfig};
-use crate::error::{Result as ImsgResult, RsImsgError};
+use crate::error::{Result as ImsgResult, RsImessageError};
 use crate::types::{ChatRecord, MessageRecord, SendRequest, SendResult, WatchEvent};
 
 type HttpResult<T> = std::result::Result<T, StatusCode>;
@@ -187,10 +187,10 @@ pub async fn run(config: ServeConfig) -> ImsgResult<()> {
 
     let listener = tokio::net::TcpListener::bind(config.bind)
         .await
-        .map_err(|e| RsImsgError::Other(e.to_string()))?;
-    eprintln!("rs_imsg bridge listening on http://{}", config.bind);
+        .map_err(|e| RsImessageError::Other(e.to_string()))?;
+    eprintln!("rs_imessage bridge listening on http://{}", config.bind);
     axum::serve(listener, api)
         .await
-        .map_err(|e| RsImsgError::Other(e.to_string()))?;
+        .map_err(|e| RsImessageError::Other(e.to_string()))?;
     Ok(())
 }

@@ -1,4 +1,4 @@
-//! `rs_imsg` — original agent-first iMessage toolkit for macOS.
+//! `rs_imessage` — original agent-first iMessage toolkit for macOS.
 //!
 //! Design synthesis (not a fork):
 //! - **imsg**: JSON lines + JSON-RPC, `watch` with fs events + poll fallback, stderr for humans
@@ -9,6 +9,7 @@
 //! openclaw/imsg Messages dylib (typing, reactions, edit/unsend). FaceTime is a
 //! separate [`rs_facetime`](https://github.com/undivisible/rs_facetime) crate.
 
+pub mod env;
 pub mod client;
 pub mod db;
 pub mod error;

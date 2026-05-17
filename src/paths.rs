@@ -14,10 +14,15 @@ pub fn default_chat_db() -> PathBuf {
     default_messages_dir().join("chat.db")
 }
 
-pub fn chat_db_from_env() -> PathBuf {
-    std::env::var("RS_IMSG_DB")
+fn env_path(primary: &str, legacy: &str) -> Option<PathBuf> {
+    std::env::var(primary)
+        .ok()
+        .or_else(|| std::env::var(legacy).ok())
         .map(PathBuf::from)
-        .unwrap_or_else(|_| default_chat_db())
+}
+
+pub fn chat_db_from_env() -> PathBuf {
+    env_path("RS_IMESSAGE_DB", "RS_IMSG_DB").unwrap_or_else(default_chat_db)
 }
 
 pub fn wal_paths(db: &Path) -> [PathBuf; 3] {

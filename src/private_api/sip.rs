@@ -1,6 +1,6 @@
 use std::process::Command;
 
-use crate::error::{Result, RsImsgError};
+use crate::error::{Result, RsImessageError};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SipStatus {
@@ -27,10 +27,10 @@ pub fn current_sip_status() -> SipStatus {
 pub fn require_sip_disabled() -> Result<()> {
     match current_sip_status() {
         SipStatus::Disabled => Ok(()),
-        SipStatus::Enabled => Err(RsImsgError::PrivateApi(
+        SipStatus::Enabled => Err(RsImessageError::PrivateApi(
             "System Integrity Protection is enabled; disable SIP in Recovery mode before private-api injection".into(),
         )),
-        SipStatus::Unknown => Err(RsImsgError::PrivateApi(
+        SipStatus::Unknown => Err(RsImessageError::PrivateApi(
             "could not determine SIP status via csrutil".into(),
         )),
     }
