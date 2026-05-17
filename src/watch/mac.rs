@@ -9,7 +9,7 @@ use crate::error::{Result, RsImsgError};
 use crate::paths::wal_paths;
 use crate::types::{WatchEvent, WatchEventKind};
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct WatchOptions {
     pub chat_id: Option<i64>,
     pub since_rowid: Option<i64>,

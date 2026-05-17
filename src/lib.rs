@@ -10,12 +10,17 @@
 pub mod client;
 pub mod db;
 pub mod error;
+#[cfg(feature = "serve")]
+pub mod http;
 pub mod paths;
 pub mod rpc;
 pub mod send;
 pub mod time;
 pub mod types;
 pub mod watch;
+
+#[cfg(feature = "serve")]
+pub use http::{run as run_bridge, ServeConfig};
 
 pub use client::{Client, ClientConfig};
 pub use db::MessageStore;

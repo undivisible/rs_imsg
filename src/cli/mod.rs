@@ -71,11 +71,56 @@ pub enum Commands {
         file: Option<String>,
     },
     Rpc,
+    Serve {
+        #[arg(long, default_value = "127.0.0.1:8721")]
+        bind: String,
+        #[arg(long, env = "RS_IMSG_TOKEN")]
+        token: String,
+        #[arg(long)]
+        chat_id: Option<i64>,
+        #[arg(long)]
+        since_rowid: Option<i64>,
+        #[arg(long, default_value_t = 500)]
+        poll_ms: u64,
+        #[arg(long, default_value_t = 300)]
+        debounce_ms: u64,
+    },
 }
 
 pub fn run(cli: Cli) -> Result<()> {
-  match cli.command {
+    match cli.command {
         Commands::Rpc => rs_imsg::rpc::run_stdio(),
+        Commands::Serve {
+            bind,
+            token,
+            chat_id,
+            since_rowid,
+            poll_ms,
+            debounce_ms,
+        } => {
+            let db_path = cli.db.clone().unwrap_or_else(rs_imsg::paths::chat_db_from_env);
+            let addr = bind
+                .parse()
+                .map_err(|e| rs_imsg::error::RsImsgError::Other(format!("invalid bind address: {e}")))?;
+            let rt = tokio::runtime::Builder::new_multi_thread()
+                .enable_all()
+                .build()
+                .map_err(|e| rs_imsg::error::RsImsgError::Other(e.to_string()))?;
+            rt.block_on(rs_imsg::http::run(rs_imsg::http::ServeConfig {
+                bind: addr,
+                token,
+                client: rs_imsg::ClientConfig {
+                    chat_db_path: db_path,
+                },
+                watch: WatchOptions {
+                    chat_id,
+                    since_rowid,
+                    poll_ms,
+                    debounce_ms,
+                },
+            }))?;
+            Ok(())
+        }
         other => run_command(cli.db.as_deref(), cli.json, other),
     }
 }
@@ -150,7 +195,7 @@ fn run_command(db: Option<&std::path::Path>, json: bool, command: Commands) -> R
             let result = send::send(&request)?;
             emit(json, &result)?;
         }
-        Commands::Rpc => unreachable!(),
+        Commands::Rpc | Commands::Serve { .. } => unreachable!(),
     }
     Ok(())
 }

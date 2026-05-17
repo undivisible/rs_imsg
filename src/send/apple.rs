@@ -107,24 +107,43 @@ fn build_send_script(target: &str, text: &str, service: &str, file: Option<&str>
         _ => "iMessage",
     };
 
+    let send_target = if target.contains("chat") && target.contains(';') {
+        "targetChat".to_string()
+    } else {
+        "targetBuddy".to_string()
+    };
+
+    let setup = if send_target == "targetChat" {
+        format!(
+            r#"
+            set targetChat to missing value
+            set targetHandle to "{target_esc}"
+            repeat with c in chats
+                if id of c is targetHandle then
+                    set targetChat to c
+                    exit repeat
+                end if
+            end repeat
+            if targetChat is missing value then
+                error "chat not found"
+            end if
+            "#
+        )
+    } else {
+        format!(
+            r#"
+            set svc to 1st service whose service type is {service_type}
+            set targetBuddy to buddy "{target_esc}" of svc
+            "#
+        )
+    };
+
+    let body = body.replace("targetChat", &send_target);
+
     Ok(format!(
         r#"
         tell application "Messages"
-            set targetChat to missing value
-            set targetHandle to "{target_esc}"
-            if targetHandle contains "chat" then
-                repeat with c in chats
-                    if id of c is targetHandle then
-                        set targetChat to c
-                        exit repeat
-                    end if
-                end repeat
-            end if
-            if targetChat is missing value then
-                set svc to 1st service whose service type is {service_type}
-                set targetBuddy to buddy targetHandle of svc
-                set targetChat to chat targetBuddy
-            end if
+            {setup}
             {body}
         end tell
         "#

@@ -10,6 +10,45 @@ This crate is **original work**. It is not a fork of the projects listed under
 [Acknowledgements](#acknowledgements); those repositories informed design and
 API shape only.
 
+## Mac hosts the bridge
+
+Apple only delivers iMessage on a **Mac signed into Messages**. The pattern we target:
+
+```text
+┌──────────────────────────── Mac (always on) ────────────────────────────┐
+│  Messages.app  →  chat.db  →  rs_imsg bridge (HTTP on :8721)              │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │  LAN / Tailscale / SSH tunnel
+                                     ▼
+┌──────────────────────────── Your agent host ──────────────────────────────┐
+│  unthinkclaw / mono gateway  →  RS_IMSG_URL + token  →  send + SSE events │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+On the Mac:
+
+```bash
+export RS_IMSG_TOKEN="$(openssl rand -hex 24)"
+cargo run --features cli -- serve --bind 0.0.0.0:8721
+```
+
+Remote callers use `Authorization: Bearer $RS_IMSG_TOKEN` (or `?token=`).
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/health` | GET | Liveness (no auth) |
+| `/api/v1/ping` | GET | Auth check |
+| `/api/v1/chats` | GET | List chats |
+| `/api/v1/messages/history` | POST | History for one chat |
+| `/api/v1/messages/send` | POST | Send text / file |
+| `/api/v1/events` | GET | SSE stream of new messages |
+
+**Same machine:** link `rs_imsg` as a library (`Client`) or run `unthinkclaw --channel imsg` — no HTTP hop.
+
+**Hosted live:** use Linq in mono; the Mac bridge is for self-host / home lab.
+
+Library API: enable feature `serve` and call `rs_imsg::run_bridge(ServeConfig { ... }).await`.
+
 ## Requirements
 
 - macOS 14+
@@ -79,5 +118,6 @@ project is not affiliated with Apple.
 
 ## Roadmap
 
+- `unthinkclaw` `channel-rs-imsg-remote` (`RS_IMSG_URL` HTTP client)
 - Private API feature (typing, edit/unsend, rich send), behind explicit opt-in
-- Optional `rs_imsg_http` — BlueBubbles-compatible local server
+- Optional BlueBubbles-compatible route aliases on the same bridge

@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 #[cfg(target_os = "macos")]
 use std::thread;
 
@@ -37,6 +37,10 @@ impl Client {
         Ok(Self {
             db_path: config.chat_db_path,
         })
+    }
+
+    pub fn db_path(&self) -> &Path {
+        &self.db_path
     }
 
     pub fn list_chats(&self, limit: usize) -> Result<Vec<ChatRecord>> {
