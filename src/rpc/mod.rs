@@ -119,8 +119,14 @@ fn dispatch(method: &str, params: Value) -> Result<Value> {
         "watch.subscribe" => {
             let chat_id = params.get("chat_id").and_then(|v| v.as_i64());
             let since_rowid = params.get("since_rowid").and_then(|v| v.as_i64());
-            let poll_ms = params.get("poll_ms").and_then(|v| v.as_u64()).unwrap_or(500);
-            let debounce_ms = params.get("debounce_ms").and_then(|v| v.as_u64()).unwrap_or(300);
+            let poll_ms = params
+                .get("poll_ms")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(500);
+            let debounce_ms = params
+                .get("debounce_ms")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(300);
             watch_blocking(
                 &db,
                 WatchOptions {

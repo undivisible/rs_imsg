@@ -56,10 +56,18 @@ fn send_text(target: &str, text: &str, service: SendService) -> Result<SendResul
     run_osascript(&script)
 }
 
-fn send_file(target: &str, path: &str, caption: Option<&str>, service: SendService) -> Result<SendResult> {
+fn send_file(
+    target: &str,
+    path: &str,
+    caption: Option<&str>,
+    service: SendService,
+) -> Result<SendResult> {
     let file = Path::new(path);
     if !file.is_file() {
-        return Err(RsImessageError::Send(format!("file not found: {}", file.display())));
+        return Err(RsImessageError::Send(format!(
+            "file not found: {}",
+            file.display()
+        )));
     }
     let staged = stage_attachment(file)?;
     let script = build_send_script(
@@ -82,7 +90,12 @@ fn stage_attachment(source: &Path) -> Result<std::path::PathBuf> {
     Ok(dest)
 }
 
-fn build_send_script(target: &str, text: &str, service: &str, file: Option<&str>) -> Result<String> {
+fn build_send_script(
+    target: &str,
+    text: &str,
+    service: &str,
+    file: Option<&str>,
+) -> Result<String> {
     let target_esc = escape_applescript_string(target);
     let text_esc = escape_applescript_string(text);
 

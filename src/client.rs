@@ -65,18 +65,12 @@ impl Client {
     }
 
     #[cfg(not(target_os = "macos"))]
-    pub fn watch(
-        &self,
-        _options: WatchOptions,
-    ) -> Result<mpsc::Receiver<Result<WatchEvent>>> {
+    pub fn watch(&self, _options: WatchOptions) -> Result<mpsc::Receiver<Result<WatchEvent>>> {
         Err(RsImessageError::UnsupportedPlatform)
     }
 
     #[cfg(target_os = "macos")]
-    pub fn watch(
-        &self,
-        options: WatchOptions,
-    ) -> Result<mpsc::Receiver<Result<WatchEvent>>> {
+    pub fn watch(&self, options: WatchOptions) -> Result<mpsc::Receiver<Result<WatchEvent>>> {
         let db_path = self.db_path.clone();
         MessageStore::open(&db_path)?;
 

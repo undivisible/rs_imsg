@@ -48,7 +48,8 @@ impl Launcher {
 }
 
 fn ensure_queue_dir(path: &Path) -> Result<()> {
-    fs::create_dir_all(path).map_err(|e| RsImessageError::PrivateApi(format!("mkdir {}: {e}", path.display())))?;
+    fs::create_dir_all(path)
+        .map_err(|e| RsImessageError::PrivateApi(format!("mkdir {}: {e}", path.display())))?;
     Ok(())
 }
 

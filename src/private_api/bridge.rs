@@ -22,9 +22,7 @@ impl BridgeClient {
     }
 
     pub fn is_ready() -> bool {
-        Launcher::discover()
-            .map(|l| l.is_ready())
-            .unwrap_or(false)
+        Launcher::discover().map(|l| l.is_ready()).unwrap_or(false)
     }
 
     pub fn events_log_path() -> PathBuf {
@@ -36,17 +34,11 @@ impl BridgeClient {
     }
 
     pub fn start_typing(&self, chat_guid: &str) -> Result<BridgeResponse> {
-        self.invoke(
-            BridgeAction::StartTyping,
-            json!({ "chatGuid": chat_guid }),
-        )
+        self.invoke(BridgeAction::StartTyping, json!({ "chatGuid": chat_guid }))
     }
 
     pub fn stop_typing(&self, chat_guid: &str) -> Result<BridgeResponse> {
-        self.invoke(
-            BridgeAction::StopTyping,
-            json!({ "chatGuid": chat_guid }),
-        )
+        self.invoke(BridgeAction::StopTyping, json!({ "chatGuid": chat_guid }))
     }
 
     pub fn send_message(
@@ -108,17 +100,11 @@ impl BridgeClient {
     }
 
     pub fn mark_chat_read(&self, chat_guid: &str) -> Result<BridgeResponse> {
-        self.invoke(
-            BridgeAction::MarkChatRead,
-            json!({ "chatGuid": chat_guid }),
-        )
+        self.invoke(BridgeAction::MarkChatRead, json!({ "chatGuid": chat_guid }))
     }
 
     pub fn create_chat(&self, addresses: &[&str]) -> Result<BridgeResponse> {
-        self.invoke(
-            BridgeAction::CreateChat,
-            json!({ "addresses": addresses }),
-        )
+        self.invoke(BridgeAction::CreateChat, json!({ "addresses": addresses }))
     }
 
     pub fn invoke(&self, action: BridgeAction, params: Value) -> Result<BridgeResponse> {

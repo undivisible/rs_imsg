@@ -24,9 +24,11 @@ impl MessageStore {
     }
 
     pub fn max_message_rowid(&self) -> Result<i64> {
-        let rowid: i64 = self
-            .conn
-            .query_row("SELECT COALESCE(MAX(ROWID), 0) FROM message", [], |r| r.get(0))?;
+        let rowid: i64 =
+            self.conn
+                .query_row("SELECT COALESCE(MAX(ROWID), 0) FROM message", [], |r| {
+                    r.get(0)
+                })?;
         Ok(rowid)
     }
 
@@ -60,7 +62,15 @@ impl MessageStore {
             let service: Option<String> = row.get(4)?;
             let style: Option<i32> = row.get(5)?;
             let last_date: Option<i64> = row.get(6)?;
-            Ok((id, display_name, identifier, guid, service, style, last_date))
+            Ok((
+                id,
+                display_name,
+                identifier,
+                guid,
+                service,
+                style,
+                last_date,
+            ))
         })?;
 
         let mut out = Vec::new();
@@ -98,7 +108,12 @@ impl MessageStore {
         Ok(handles)
     }
 
-    pub fn history(&self, chat_id: i64, limit: usize, since_rowid: Option<i64>) -> Result<Vec<MessageRecord>> {
+    pub fn history(
+        &self,
+        chat_id: i64,
+        limit: usize,
+        since_rowid: Option<i64>,
+    ) -> Result<Vec<MessageRecord>> {
         const SELECT: &str = r#"
             SELECT
                 m.ROWID, m.guid, c.ROWID, c.chat_identifier, c.guid, c.display_name, c.style,
@@ -172,7 +187,12 @@ impl MessageStore {
         })
     }
 
-    pub fn messages_after_rowid(&self, since_rowid: i64, chat_id: Option<i64>, limit: usize) -> Result<Vec<MessageRecord>> {
+    pub fn messages_after_rowid(
+        &self,
+        since_rowid: i64,
+        chat_id: Option<i64>,
+        limit: usize,
+    ) -> Result<Vec<MessageRecord>> {
         let sql = if chat_id.is_some() {
             r#"
             SELECT

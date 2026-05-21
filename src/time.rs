@@ -12,7 +12,8 @@ pub fn apple_timestamp_to_utc(raw: i64) -> Option<DateTime<Utc>> {
     } else {
         (raw, 0)
     };
-    Utc.timestamp_opt(APPLE_EPOCH_UNIX_SECS + secs, nsecs).single()
+    Utc.timestamp_opt(APPLE_EPOCH_UNIX_SECS + secs, nsecs)
+        .single()
 }
 
 #[cfg(test)]

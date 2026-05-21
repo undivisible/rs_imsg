@@ -9,9 +9,9 @@
 //! openclaw/imsg Messages dylib (typing, reactions, edit/unsend). FaceTime is a
 //! separate [`rs_facetime`](https://github.com/undivisible/rs_facetime) crate.
 
-pub mod env;
 pub mod client;
 pub mod db;
+pub mod env;
 pub mod error;
 #[cfg(feature = "serve")]
 pub mod http;

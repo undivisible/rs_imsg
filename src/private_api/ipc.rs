@@ -20,19 +20,16 @@ pub struct BridgeResponse {
 
 impl BridgeResponse {
     pub fn parse(raw: &Value) -> Result<Self> {
-        let id = raw
-            .get("id")
-            .map(stringify_id)
-            .unwrap_or_default();
-        let success = raw.get("success").and_then(|v| v.as_bool()).unwrap_or(false);
+        let id = raw.get("id").map(stringify_id).unwrap_or_default();
+        let success = raw
+            .get("success")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
         let error = raw.get("error").and_then(|v| v.as_str()).map(str::to_owned);
         let data = if let Some(d) = raw.get("data") {
             d.clone()
         } else {
-            let mut map = raw
-                .as_object()
-                .cloned()
-                .unwrap_or_default();
+            let mut map = raw.as_object().cloned().unwrap_or_default();
             for key in ["v", "id", "success", "error", "timestamp"] {
                 map.remove(key);
             }
@@ -108,16 +105,11 @@ pub fn invoke_blocking(
 }
 
 pub fn invoke_default(action: BridgeAction, params: Value) -> Result<BridgeResponse> {
-    invoke_blocking(
-        action,
-        params,
-        Duration::from_millis(DEFAULT_TIMEOUT_MS),
-    )
+    invoke_blocking(action, params, Duration::from_millis(DEFAULT_TIMEOUT_MS))
 }
 
 fn ensure_dir(path: &Path) -> Result<()> {
-    fs::create_dir_all(path).map_err(|e| {
-        RsImessageError::PrivateApi(format!("mkdir {}: {e}", path.display()))
-    })?;
+    fs::create_dir_all(path)
+        .map_err(|e| RsImessageError::PrivateApi(format!("mkdir {}: {e}", path.display())))?;
     Ok(())
 }
